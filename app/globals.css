@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --beige: #f6f4f0;
+  --green-dark: #3d3818;
+  --green-light: #697b43;
+  --pink-light: #f0d8d1;
+  --pink-medium: #d9a8a6;
+  --pink-dark: #af6667;
+}
+
+@theme inline {
+  --color-beige: var(--beige);
+  --color-green-dark: var(--green-dark);
+  --color-green-light: var(--green-light);
+  --color-pink-light: var(--pink-light);
+  --color-pink-medium: var(--pink-medium);
+  --color-pink-dark: var(--pink-dark);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--beige);
+  color: var(--green-dark);
+}
