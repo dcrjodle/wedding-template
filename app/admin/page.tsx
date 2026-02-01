@@ -17,6 +17,14 @@ type RSVP = {
   fun_fact: string;
 };
 
+type Photo = {
+  id: string;
+  file_name: string;
+  uploader_name: string;
+  show_on_homepage: boolean;
+  url: string;
+};
+
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState("");
@@ -24,7 +32,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,18 +88,33 @@ export default function AdminPage() {
 
   const fetchPhotos = async () => {
     if (!supabase) return;
-    const { data } = await supabase.storage.from("wedding-photos").list();
+    const { data } = await supabase
+      .from("photos")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (data) {
-      const urls = data
-        .filter((file) => file.name !== ".emptyFolderPlaceholder")
-        .map((file) => {
-          const { data: urlData } = supabase.storage
-            .from("wedding-photos")
-            .getPublicUrl(file.name);
-          return urlData.publicUrl;
-        });
-      setPhotos(urls);
+      const photosWithUrls = data.map((photo) => {
+        const { data: urlData } = supabase.storage
+          .from("wedding-photos")
+          .getPublicUrl(photo.file_name);
+        return { ...photo, url: urlData.publicUrl };
+      });
+      setPhotos(photosWithUrls);
     }
+  };
+
+  const toggleHomepage = async (photo: Photo) => {
+    if (!supabase) return;
+    const newValue = !photo.show_on_homepage;
+    await supabase
+      .from("photos")
+      .update({ show_on_homepage: newValue })
+      .eq("id", photo.id);
+    setPhotos(
+      photos.map((p) =>
+        p.id === photo.id ? { ...p, show_on_homepage: newValue } : p,
+      ),
+    );
   };
 
   const handleLogout = () => {
@@ -280,20 +303,45 @@ export default function AdminPage() {
           <p className="text-green-dark/70">Inga bilder uppladdade än.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {photos.map((url, i) => (
-              <a
-                key={i}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="aspect-square rounded-xl overflow-hidden border border-green-dark/10 hover:opacity-90 transition-opacity"
+            {photos.map((photo) => (
+              <div
+                key={photo.id}
+                className={`rounded-xl overflow-hidden bg-white/50 border-2 ${
+                  photo.show_on_homepage
+                    ? "border-green-light"
+                    : "border-green-dark/10"
+                }`}
               >
-                <img
-                  src={url}
-                  alt={`Bild ${i + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </a>
+                <a
+                  href={photo.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block aspect-square hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src={photo.url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </a>
+                <div className="p-3">
+                  <p className="text-sm text-green-dark truncate mb-2">
+                    {photo.uploader_name}
+                  </p>
+                  <button
+                    onClick={() => toggleHomepage(photo)}
+                    className={`w-full text-sm py-2 px-3 rounded-lg transition-colors ${
+                      photo.show_on_homepage
+                        ? "bg-green-light text-white"
+                        : "bg-green-dark/10 text-green-dark hover:bg-green-dark/20"
+                    }`}
+                  >
+                    {photo.show_on_homepage
+                      ? "Visas på startsidan"
+                      : "Visa på startsidan"}
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}

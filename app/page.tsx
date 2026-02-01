@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Menu,
@@ -591,8 +591,33 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
 }
 
 function PhotosSection() {
+  const [showModal, setShowModal] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploaderName, setUploaderName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [homepagePhotos, setHomepagePhotos] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchHomepagePhotos();
+  }, []);
+
+  const fetchHomepagePhotos = async () => {
+    if (!isSupabaseConfigured() || !supabase) return;
+    const { data } = await supabase
+      .from("photos")
+      .select("file_name")
+      .eq("show_on_homepage", true);
+    if (data) {
+      const urls = data.map((p) => {
+        const { data: urlData } = supabase!.storage
+          .from("wedding-photos")
+          .getPublicUrl(p.file_name);
+        return urlData.publicUrl;
+      });
+      setHomepagePhotos(urls);
+    }
+  };
 
   const compressImage = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -629,73 +654,153 @@ function PhotosSection() {
     });
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (files && files.length > 0) {
+      setSelectedFiles(Array.from(files));
+      setShowModal(true);
+    }
+    e.target.value = "";
+  };
+
+  const handleUpload = async () => {
+    if (!uploaderName.trim() || selectedFiles.length === 0) return;
 
     setUploading(true);
     try {
       if (!isSupabaseConfigured() || !supabase) {
-        console.log(
-          "Would upload files:",
-          Array.from(files).map((f) => f.name),
-        );
-        alert("Supabase ej konfigurerat. Uppladdning simulerad.");
-        setUploaded(true);
-        setTimeout(() => setUploaded(false), 3000);
+        alert("Supabase ej konfigurerat.");
         setUploading(false);
-        e.target.value = "";
         return;
       }
-      for (const file of Array.from(files)) {
+      for (const file of selectedFiles) {
         const compressed = await compressImage(file);
         const fileName = `${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}.jpg`;
-        const { error } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("wedding-photos")
           .upload(fileName, compressed, { contentType: "image/jpeg" });
-        if (error) throw error;
+        if (uploadError) throw uploadError;
+
+        const { error: dbError } = await supabase.from("photos").insert({
+          file_name: fileName,
+          uploader_name: uploaderName.trim(),
+        });
+        if (dbError) throw dbError;
       }
       setUploaded(true);
+      setShowModal(false);
+      setSelectedFiles([]);
+      setUploaderName("");
       setTimeout(() => setUploaded(false), 3000);
     } catch (err) {
       console.error(err);
       alert("Något gick fel vid uppladdning.");
     }
     setUploading(false);
-    e.target.value = "";
   };
 
   return (
     <section id="photos" className="py-24 px-4 bg-beige">
-      <div className="max-w-3xl mx-auto text-center">
-        <Camera className="w-12 h-12 text-green-dark mx-auto mb-4" />
-        <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark mb-4">
-          Dela dina bilder
-        </h2>
-        <p className="text-green-dark mb-8">
-          Hjälp oss samla minnen från dagen! Ladda upp dina bilder här.
-        </p>
-        <label
-          className={`inline-flex items-center gap-3 px-8 py-4 rounded-full cursor-pointer transition-colors ${uploading ? "bg-green-dark/50" : "bg-green-dark hover:bg-green-light"} text-white`}
-        >
-          <Upload className="w-5 h-5" />
-          {uploading ? "Laddar upp..." : "Välj bilder"}
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleUpload}
-            disabled={uploading}
-            className="hidden"
-          />
-        </label>
-        {uploaded && (
-          <div className="mt-4 flex items-center justify-center gap-2 text-green-light">
-            <Check className="w-5 h-5" />
-            <span>Bilderna är uppladdade!</span>
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <Camera className="w-12 h-12 text-green-dark mx-auto mb-4" />
+          <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark mb-4">
+            Dela dina bilder
+          </h2>
+          <p className="text-green-dark mb-8">
+            Hjälp oss samla minnen från dagen! Ladda upp dina bilder här.
+          </p>
+          <label className="inline-flex items-center gap-3 px-8 py-4 rounded-full cursor-pointer transition-colors bg-green-dark hover:bg-green-light text-white">
+            <Upload className="w-5 h-5" />
+            Välj bilder
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          </label>
+          {uploaded && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-green-light">
+              <Check className="w-5 h-5" />
+              <span>Bilderna är uppladdade!</span>
+            </div>
+          )}
+        </div>
+
+        {homepagePhotos.length > 0 && (
+          <div className="grid grid-cols-4 gap-4">
+            {homepagePhotos.map((url, i) => (
+              <div key={i} className="aspect-square rounded-xl overflow-hidden">
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-beige rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-green-dark">
+                Ladda upp bilder
+              </h3>
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedFiles([]);
+                  setUploaderName("");
+                }}
+                className="text-green-dark hover:text-green-light"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-green-dark mb-2">Ditt namn *</label>
+              <input
+                type="text"
+                value={uploaderName}
+                onChange={(e) => setUploaderName(e.target.value)}
+                placeholder="Förnamn Efternamn"
+                className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light"
+              />
+            </div>
+
+            <div className="mb-6">
+              <p className="text-green-dark mb-3">
+                {selectedFiles.length} bild{selectedFiles.length !== 1 && "er"}{" "}
+                valda
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {selectedFiles.map((file, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-lg overflow-hidden bg-green-dark/10"
+                  >
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleUpload}
+              disabled={uploading || !uploaderName.trim()}
+              className="w-full bg-green-dark hover:bg-green-light text-white py-3 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {uploading ? "Laddar upp..." : "Ladda upp"}
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
