@@ -735,9 +735,12 @@ function PhotosSection() {
         </div>
 
         {homepagePhotos.length > 0 && (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-4">
             {homepagePhotos.map((url, i) => (
-              <div key={i} className="aspect-square rounded-xl overflow-hidden">
+              <div
+                key={i}
+                className="aspect-square rounded-lg md:rounded-xl overflow-hidden"
+              >
                 <img src={url} alt="" className="w-full h-full object-cover" />
               </div>
             ))}
