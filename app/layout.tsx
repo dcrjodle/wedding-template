@@ -5,11 +5,11 @@ import "./globals.css";
 const greatVibes = Great_Vibes({
   weight: "400",
   subsets: ["latin"],
-  variable: "--font-cursive",
+  variable: "--font-signature",
 });
 
 const cormorant = Cormorant_Garamond({
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "600"],
   subsets: ["latin"],
   variable: "--font-serif",
 });
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body
-        className={`${greatVibes.variable} ${cormorant.variable} font-serif antialiased`}
+        className={`${greatVibes.variable} ${cormorant.variable} font-[family-name:var(--font-serif)] antialiased`}
       >
         {children}
       </body>

@@ -20,11 +20,11 @@ import {
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const navItems = [
-  { label: "Startsida", href: "#start" },
+  { label: "STARTSIDA", href: "#start" },
   { label: "O.S.A", href: "#osa" },
-  { label: "Ta dig hit", href: "#location" },
+  { label: "TA DIG HIT", href: "#location" },
   { label: "FAQ", href: "#faq" },
-  { label: "Bilder", href: "#photos" },
+  { label: "BILDER", href: "#photos" },
 ];
 
 export default function Home() {
@@ -35,9 +35,9 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-beige/90 backdrop-blur-sm border-b border-green-dark/10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="text-green-dark">
-            <span className="text-sm md:text-base">15 augusti 2026</span>
+            <span className="text-sm md:text-base">15 AUGUSTI</span>
             <span className="mx-2">·</span>
-            <span className="text-sm md:text-base">Dalarö</span>
+            <span className="text-sm md:text-base">DALARÖ KYRKA</span>
           </div>
           <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? (
@@ -82,7 +82,7 @@ export default function Home() {
       <PhotosSection />
 
       <footer className="bg-green-dark text-beige py-8 text-center">
-        <p className="font-[family-name:var(--font-cursive)] text-3xl mb-2">
+        <p className="font-[family-name:var(--font-signature)] text-3xl mb-2">
           Vi ses där!
         </p>
         <Heart className="w-6 h-6 mx-auto text-pink-medium" />
@@ -93,22 +93,30 @@ export default function Home() {
 
 function HeroSection() {
   return (
-    <section id="start" className="relative h-screen w-full">
-      <Image
-        src="/hero-s.png"
-        alt="Wedding hero"
-        fill
-        className="object-cover object-top md:hidden"
-        priority
-      />
-      <Image
-        src="/hero-lg.png"
-        alt="Wedding hero"
-        fill
-        className="object-cover object-top hidden md:block"
-        priority
-      />
-      <div className="absolute inset-0 flex flex-col items-center justify-end pb-16 px-4">
+    <section
+      id="start"
+      className="min-h-screen w-full flex flex-col md:flex-row"
+    >
+      <div className="relative w-full md:w-1/2 h-[50vh] md:h-screen">
+        <Image
+          src="/half-hero-img.jpg"
+          alt="Axel & Vendela"
+          fill
+          className="object-cover object-center"
+          priority
+        />
+      </div>
+      <div className="w-full md:w-1/2 bg-pink-light flex flex-col items-center justify-center px-8 py-16 md:py-0">
+        <h1 className="font-[family-name:var(--font-signature)] text-6xl md:text-8xl text-green-dark text-center mb-6">
+          Axel & Vendela
+        </h1>
+        <p className="text-lg md:text-xl text-green-dark mb-1">
+          Lördagen 15 augusti
+        </p>
+        <p className="text-lg md:text-xl text-green-dark mb-1">Klockan 14.30</p>
+        <p className="text-lg md:text-xl text-green-dark/70 mb-8">
+          Dalarö Kyrka, Haninge
+        </p>
         <a
           href="#osa"
           className="bg-green-dark hover:bg-green-light text-white px-8 py-3 rounded-full transition-colors"
@@ -140,8 +148,10 @@ function OSASection() {
     name: "",
     email: "",
     attending: "",
-    dietary: "",
+    wantsSpeech: "",
     song: "",
+    hasDietary: "",
+    dietary: "",
     funFact: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -163,8 +173,10 @@ function OSASection() {
           name: formData.name,
           email: formData.email,
           attending: formData.attending,
-          dietary: formData.dietary,
+          wants_speech: formData.wantsSpeech === "yes",
           song: formData.song,
+          has_dietary: formData.hasDietary === "yes",
+          dietary: formData.dietary,
           fun_fact: formData.funFact,
         },
       ]);
@@ -182,7 +194,7 @@ function OSASection() {
       <section id="osa" className="py-24 px-4 bg-pink-light/30">
         <div className="max-w-2xl mx-auto text-center">
           <Check className="w-16 h-16 text-green-light mx-auto mb-4" />
-          <h2 className="font-[family-name:var(--font-cursive)] text-5xl text-green-dark mb-4">
+          <h2 className="font-[family-name:var(--font-signature)] text-5xl text-green-dark mb-4">
             Tack!
           </h2>
           <p className="text-lg text-green-dark">
@@ -196,7 +208,7 @@ function OSASection() {
   return (
     <section id="osa" className="py-24 px-4 bg-pink-light/30">
       <div className="max-w-2xl mx-auto">
-        <h2 className="font-[family-name:var(--font-cursive)] text-5xl md:text-6xl text-green-dark text-center mb-12">
+        <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark text-center mb-12">
           O.S.A
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -276,23 +288,44 @@ function OSASection() {
           {formData.attending === "yes" && (
             <div className="space-y-6 pt-4 border-t border-green-dark/10">
               <div>
-                <label className="block text-green-dark mb-2">
-                  Har du specialkost? Vänligen ange detta nedan:
+                <label className="block text-green-dark mb-4">
+                  Jag vill hålla tal
                 </label>
-                <input
-                  type="text"
-                  value={formData.dietary}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dietary: e.target.value })
-                  }
-                  placeholder="T.ex. vegetarian, glutenfri, allergier..."
-                  className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light"
-                />
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-green-dark/20 bg-white/50 hover:bg-white/70 transition-colors">
+                    <input
+                      type="radio"
+                      name="wantsSpeech"
+                      value="yes"
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          wantsSpeech: e.target.value,
+                        })
+                      }
+                      className="accent-green-light w-5 h-5"
+                    />
+                    <span className="text-green-dark">Ja</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-green-dark/20 bg-white/50 hover:bg-white/70 transition-colors">
+                    <input
+                      type="radio"
+                      name="wantsSpeech"
+                      value="no"
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          wantsSpeech: e.target.value,
+                        })
+                      }
+                      className="accent-green-light w-5 h-5"
+                    />
+                    <span className="text-green-dark">Nej</span>
+                  </label>
+                </div>
               </div>
               <div>
-                <label className="block text-green-dark mb-2">
-                  Vilken låt får dig att dansa på borden?
-                </label>
+                <label className="block text-green-dark mb-2">Favoritlåt</label>
                 <input
                   type="text"
                   value={formData.song}
@@ -304,10 +337,54 @@ function OSASection() {
                 />
               </div>
               <div>
+                <label className="block text-green-dark mb-4">
+                  Har du specialkost?
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-green-dark/20 bg-white/50 hover:bg-white/70 transition-colors">
+                    <input
+                      type="radio"
+                      name="hasDietary"
+                      value="yes"
+                      onChange={(e) =>
+                        setFormData({ ...formData, hasDietary: e.target.value })
+                      }
+                      className="accent-green-light w-5 h-5"
+                    />
+                    <span className="text-green-dark">Ja</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-green-dark/20 bg-white/50 hover:bg-white/70 transition-colors">
+                    <input
+                      type="radio"
+                      name="hasDietary"
+                      value="no"
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          hasDietary: e.target.value,
+                          dietary: "",
+                        })
+                      }
+                      className="accent-green-light w-5 h-5"
+                    />
+                    <span className="text-green-dark">Nej</span>
+                  </label>
+                </div>
+                {formData.hasDietary === "yes" && (
+                  <input
+                    type="text"
+                    value={formData.dietary}
+                    onChange={(e) =>
+                      setFormData({ ...formData, dietary: e.target.value })
+                    }
+                    placeholder="T.ex. vegetarian, glutenfri, allergier..."
+                    className="w-full mt-4 px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light"
+                  />
+                )}
+              </div>
+              <div>
                 <label className="block text-green-dark mb-2">
-                  Dela med dig av en rolig eller oväntad detalj om dig själv –
-                  något som får oss andra att höja på ögonbrynen eller skratta
-                  lite för högt.
+                  Fun fact om dig själv
                 </label>
                 <textarea
                   value={formData.funFact}
@@ -315,6 +392,7 @@ function OSASection() {
                     setFormData({ ...formData, funFact: e.target.value })
                   }
                   rows={3}
+                  placeholder="Dela med dig av något roligt eller oväntat..."
                   className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light resize-none"
                 />
               </div>
@@ -348,7 +426,7 @@ function LocationSection() {
   return (
     <section id="location" className="py-24 px-4 bg-beige">
       <div className="max-w-4xl mx-auto">
-        <h2 className="font-[family-name:var(--font-cursive)] text-5xl md:text-6xl text-green-dark text-center mb-12">
+        <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark text-center mb-12">
           Ta dig hit
         </h2>
 
@@ -471,7 +549,7 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
   return (
     <section id="faq" className="py-24 px-4 bg-pink-light/20">
       <div className="max-w-3xl mx-auto">
-        <h2 className="font-[family-name:var(--font-cursive)] text-5xl md:text-6xl text-green-dark text-center mb-12">
+        <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark text-center mb-12">
           FAQ
         </h2>
         <div className="space-y-4">
@@ -552,7 +630,7 @@ function PhotosSection() {
     <section id="photos" className="py-24 px-4 bg-beige">
       <div className="max-w-3xl mx-auto text-center">
         <Camera className="w-12 h-12 text-green-dark mx-auto mb-4" />
-        <h2 className="font-[family-name:var(--font-cursive)] text-5xl md:text-6xl text-green-dark mb-4">
+        <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark mb-4">
           Dela dina bilder
         </h2>
         <p className="text-green-dark mb-8">
