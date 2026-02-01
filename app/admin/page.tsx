@@ -94,7 +94,7 @@ export default function AdminPage() {
       .order("created_at", { ascending: false });
     if (data) {
       const photosWithUrls = data.map((photo) => {
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = supabase!.storage
           .from("wedding-photos")
           .getPublicUrl(photo.file_name);
         return { ...photo, url: urlData.publicUrl };
