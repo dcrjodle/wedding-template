@@ -97,12 +97,12 @@ function HeroSection() {
       id="start"
       className="min-h-screen w-full flex flex-col md:flex-row"
     >
-      <div className="relative w-full md:w-1/2 h-[50vh] md:h-screen">
+      <div className="relative w-full md:w-1/2 h-[65vh] md:h-screen">
         <Image
           src="/half-hero-img.jpg"
           alt="Axel & Vendela"
           fill
-          className="object-cover object-center"
+          className="object-cover object-top md:object-center"
           priority
         />
       </div>
