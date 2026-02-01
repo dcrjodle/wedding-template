@@ -675,7 +675,12 @@ function PhotosSection() {
       }
       for (const file of selectedFiles) {
         const compressed = await compressImage(file);
-        const fileName = `${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}.jpg`;
+        const safeName = file.name
+          .replace(/\.[^/.]+$/, "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9]/g, "_");
+        const fileName = `${Date.now()}-${safeName}.jpg`;
         const { error: uploadError } = await supabase.storage
           .from("wedding-photos")
           .upload(fileName, compressed, { contentType: "image/jpeg" });
