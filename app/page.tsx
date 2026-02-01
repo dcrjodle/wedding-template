@@ -114,9 +114,12 @@ function HeroSection() {
           Lördagen 15 augusti
         </p>
         <p className="text-lg md:text-xl text-green-dark mb-1">Klockan 14.30</p>
-        <p className="text-lg md:text-xl text-green-dark/70 mb-8">
+        <a
+          href="#location"
+          className="text-lg md:text-xl text-green-dark/70 mb-8 block"
+        >
           Dalarö Kyrka, Haninge
-        </p>
+        </a>
         <a
           href="#osa"
           className="bg-green-dark hover:bg-green-light text-white px-8 py-3 rounded-full transition-colors"
@@ -404,7 +407,7 @@ function OSASection() {
               <p className="text-green-dark">
                 Så tråkigt att du inte kan komma. Om du ändå vill bidra till
                 dagen på något sätt är du varmt välkommen att höra av dig till
-                vårt toastpar, Ana och Joel.
+                vårt toastpar, Ana och Joel (ana.tramosljanin@hotmail.com).
               </p>
             </div>
           )}
@@ -534,15 +537,15 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
     },
     {
       q: "Vem kontaktar jag vid frågor?",
-      a: "Hör av er till oss, Axel och Vendela, eller vårt toastpar Ana och Joel.",
+      a: "Hör av er till oss, Axel och Vendela, eller vårt toastpar Ana och Joel (ana.tramosljanin@hotmail.com).",
     },
     {
       q: "Jag vill anmäla tal eller annat inslag under kvällen. Hur går jag tillväga?",
-      a: "Kontakta vårt toastpar Ana och Joel.",
+      a: "Kontakta vårt toastpar Ana och Joel (ana.tramosljanin@hotmail.com).",
     },
     {
       q: "Jag kan tyvärr inte komma, men vill bidra till dagen på annat sätt. Hur gör jag?",
-      a: "Kontakta vårt toastpar Ana och Joel.",
+      a: "Kontakta vårt toastpar Ana och Joel (ana.tramosljanin@hotmail.com).",
     },
   ];
 
