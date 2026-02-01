@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { Lock, LogOut, Users, Camera } from "lucide-react";
+import { Lock, LogOut, Users, Camera, Download, Trash2, X } from "lucide-react";
 
 type RSVP = {
   id: string;
@@ -33,6 +33,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<RSVP | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +102,54 @@ export default function AdminPage() {
       });
       setPhotos(photosWithUrls);
     }
+  };
+
+  const downloadCSV = () => {
+    const headers = [
+      "Namn",
+      "E-post",
+      "Status",
+      "Tal",
+      "Specialkost",
+      "Kost",
+      "Låt",
+      "Fun fact",
+    ];
+    const rows = rsvps.map((r) => [
+      r.name,
+      r.email,
+      r.attending === "yes"
+        ? "Kommer"
+        : r.attending === "ceremony_only"
+          ? "Endast vigsel"
+          : "Kommer ej",
+      r.wants_speech ? "Ja" : "Nej",
+      r.has_dietary ? "Ja" : "Nej",
+      r.dietary || "",
+      r.song || "",
+      r.fun_fact || "",
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+      )
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gastlista.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const deleteRSVP = async () => {
+    if (!supabase || !deleteTarget) return;
+    await supabase.from("rsvp").delete().eq("id", deleteTarget.id);
+    setRsvps(rsvps.filter((r) => r.id !== deleteTarget.id));
+    setDeleteTarget(null);
   };
 
   const toggleHomepage = async (photo: Photo) => {
@@ -195,13 +244,22 @@ export default function AdminPage() {
               Gästlista
             </h1>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-green-dark hover:text-green-light transition-colors"
-          >
-            <LogOut className="w-5 h-5" />
-            Logga ut
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={downloadCSV}
+              className="flex items-center gap-2 text-green-dark hover:text-green-light transition-colors"
+            >
+              <Download className="w-5 h-5" />
+              Ladda ner CSV
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-green-dark hover:text-green-light transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              Logga ut
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -251,6 +309,7 @@ export default function AdminPage() {
                   <th className="text-left p-4 text-green-dark font-medium">
                     Fun fact
                   </th>
+                  <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody>
@@ -284,6 +343,14 @@ export default function AdminPage() {
                     <td className="p-4 text-green-dark">{rsvp.song || "-"}</td>
                     <td className="p-4 text-green-dark max-w-xs truncate">
                       {rsvp.fun_fact || "-"}
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => setDeleteTarget(rsvp)}
+                        className="text-pink-dark hover:text-pink-dark/70 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -346,6 +413,42 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-beige rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-green-dark">
+                Bekräfta borttagning
+              </h3>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="text-green-dark hover:text-green-light"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-green-dark mb-6">
+              Är du säker på att du vill ta bort{" "}
+              <strong>{deleteTarget.name}</strong> från gästlistan?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-3 rounded-lg border border-green-dark/20 text-green-dark hover:bg-green-dark/5 transition-colors"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={deleteRSVP}
+                className="flex-1 py-3 rounded-lg bg-pink-dark text-white hover:bg-pink-dark/80 transition-colors"
+              >
+                Ta bort
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
