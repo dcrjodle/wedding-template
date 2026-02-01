@@ -591,6 +591,41 @@ function PhotosSection() {
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
 
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement("img");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 1920;
+        let { width, height } = img;
+
+        if (width > maxSize || height > maxSize) {
+          if (width > height) {
+            height = (height / width) * maxSize;
+            width = maxSize;
+          } else {
+            width = (width / height) * maxSize;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) =>
+            blob ? resolve(blob) : reject(new Error("Compression failed")),
+          "image/jpeg",
+          0.8,
+        );
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -610,10 +645,11 @@ function PhotosSection() {
         return;
       }
       for (const file of Array.from(files)) {
-        const fileName = `${Date.now()}-${file.name}`;
+        const compressed = await compressImage(file);
+        const fileName = `${Date.now()}-${file.name.replace(/\.[^/.]+$/, "")}.jpg`;
         const { error } = await supabase.storage
           .from("wedding-photos")
-          .upload(fileName, file);
+          .upload(fileName, compressed, { contentType: "image/jpeg" });
         if (error) throw error;
       }
       setUploaded(true);

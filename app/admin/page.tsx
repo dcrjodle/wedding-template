@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { Lock, LogOut, Users } from "lucide-react";
+import { Lock, LogOut, Users, Camera } from "lucide-react";
 
 type RSVP = {
   id: string;
@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +62,7 @@ export default function AdminPage() {
       sessionStorage.setItem("admin_logged_in", "true");
       setIsLoggedIn(true);
       fetchRSVPs();
+      fetchPhotos();
     } catch {
       setError("Något gick fel");
     }
@@ -76,16 +78,34 @@ export default function AdminPage() {
     if (data) setRsvps(data);
   };
 
+  const fetchPhotos = async () => {
+    if (!supabase) return;
+    const { data } = await supabase.storage.from("wedding-photos").list();
+    if (data) {
+      const urls = data
+        .filter((file) => file.name !== ".emptyFolderPlaceholder")
+        .map((file) => {
+          const { data: urlData } = supabase.storage
+            .from("wedding-photos")
+            .getPublicUrl(file.name);
+          return urlData.publicUrl;
+        });
+      setPhotos(urls);
+    }
+  };
+
   const handleLogout = () => {
     sessionStorage.removeItem("admin_logged_in");
     setIsLoggedIn(false);
     setRsvps([]);
+    setPhotos([]);
   };
 
   useEffect(() => {
     if (sessionStorage.getItem("admin_logged_in") === "true") {
       setIsLoggedIn(true);
       fetchRSVPs();
+      fetchPhotos();
     }
   }, []);
 
@@ -182,7 +202,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="bg-white/50 rounded-2xl border border-green-dark/10 overflow-hidden">
+        <div className="bg-white/50 rounded-2xl border border-green-dark/10 overflow-hidden mb-8">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-green-dark/5">
@@ -248,6 +268,35 @@ export default function AdminPage() {
             </table>
           </div>
         </div>
+
+        <div className="flex items-center gap-3 mb-6">
+          <Camera className="w-8 h-8 text-green-dark" />
+          <h2 className="text-2xl font-semibold text-green-dark">
+            Bilder ({photos.length})
+          </h2>
+        </div>
+
+        {photos.length === 0 ? (
+          <p className="text-green-dark/70">Inga bilder uppladdade än.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {photos.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="aspect-square rounded-xl overflow-hidden border border-green-dark/10 hover:opacity-90 transition-opacity"
+              >
+                <img
+                  src={url}
+                  alt={`Bild ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
