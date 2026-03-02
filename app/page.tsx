@@ -276,6 +276,18 @@ function OSASection() {
           </div>
 
           {formData.attending === "yes" && (
+            <div className="p-4 rounded-lg bg-white/50 border border-green-dark/20 text-green-dark text-sm">
+              Vill du hålla tal, eller anmäla ett inslag? Kul!! Maila då
+              toastmaster{" "}
+              <a
+                href="mailto:ana.tramosljanin@hotmail.com"
+                className="underline hover:text-green-light transition-colors"
+              >
+                ana.tramosljanin@hotmail.com
+              </a>
+            </div>
+          )}
+          {formData.attending === "yes" && (
             <div className="space-y-6 pt-4 border-t border-green-dark/10">
               <div>
                 <label className="block text-green-dark mb-2">Favoritlåt</label>
@@ -357,7 +369,14 @@ function OSASection() {
               <p className="text-green-dark">
                 Så tråkigt att du inte kan komma. Om du ändå vill bidra till
                 dagen på något sätt är du varmt välkommen att höra av dig till
-                vårt toastpar, Ana och Joel (ana.tramosljanin@hotmail.com).
+                vårt toastpar, Ana och Joel ({" "}
+                <a
+                  href="mailto:ana.tramosljanin@hotmail.com"
+                  className="underline hover:text-green-light transition-colors"
+                >
+                  ana.tramosljanin@hotmail.com
+                </a>
+                ).
               </p>
             </div>
           )}
@@ -488,15 +507,49 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
     },
     {
       q: "Vem kontaktar jag vid frågor?",
-      a: "Hör av er till oss, Axel och Vendela, eller vårt toastpar Ana och Joel (ana.tramosljanin@hotmail.com).",
+      a: (
+        <>
+          Hör av er till oss, Axel och Vendela, eller vårt toastpar Ana och Joel
+          (
+          <a
+            href="mailto:ana.tramosljanin@hotmail.com"
+            className="underline hover:text-green-light transition-colors"
+          >
+            ana.tramosljanin@hotmail.com
+          </a>
+          ).
+        </>
+      ),
     },
     {
       q: "Jag vill anmäla tal eller annat inslag under kvällen. Hur går jag tillväga?",
-      a: "Kontakta vårt toastpar Ana och Joel (ana.tramosljanin@hotmail.com).",
+      a: (
+        <>
+          Kontakta vårt toastpar Ana och Joel (
+          <a
+            href="mailto:ana.tramosljanin@hotmail.com"
+            className="underline hover:text-green-light transition-colors"
+          >
+            ana.tramosljanin@hotmail.com
+          </a>
+          ).
+        </>
+      ),
     },
     {
       q: "Jag kan tyvärr inte komma, men vill bidra till dagen på annat sätt. Hur gör jag?",
-      a: "Kontakta vårt toastpar Ana och Joel (ana.tramosljanin@hotmail.com).",
+      a: (
+        <>
+          Kontakta vårt toastpar Ana och Joel (
+          <a
+            href="mailto:ana.tramosljanin@hotmail.com"
+            className="underline hover:text-green-light transition-colors"
+          >
+            ana.tramosljanin@hotmail.com
+          </a>
+          ).
+        </>
+      ),
     },
   ];
 
