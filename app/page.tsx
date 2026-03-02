@@ -277,7 +277,7 @@ function OSASection() {
 
           {formData.attending === "yes" && (
             <div className="p-4 rounded-lg bg-white/50 border border-green-dark/20 text-green-dark text-sm">
-              Vill du hålla tal, eller anmäla ett inslag? Kul!! Maila då
+              Vill du hålla tal, eller anmäla ett inslag? Kul! Maila då
               toastmaster{" "}
               <a
                 href="mailto:ana.tramosljanin@hotmail.com"
