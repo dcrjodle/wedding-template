@@ -149,9 +149,7 @@ function IntroSection() {
 function OSASection() {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     attending: "",
-    wantsSpeech: "",
     song: "",
     hasDietary: "",
     dietary: "",
@@ -174,9 +172,7 @@ function OSASection() {
       const { error } = await supabase.from("rsvp").insert([
         {
           name: formData.name,
-          email: formData.email,
           attending: formData.attending,
-          wants_speech: formData.wantsSpeech === "yes",
           song: formData.song,
           has_dietary: formData.hasDietary === "yes",
           dietary: formData.dietary,
@@ -216,7 +212,9 @@ function OSASection() {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-green-dark mb-2">Namn *</label>
+            <label className="block text-green-dark mb-2">
+              För- Och Efternamn *
+            </label>
             <input
               type="text"
               required
@@ -227,18 +225,7 @@ function OSASection() {
               className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light"
             />
           </div>
-          <div>
-            <label className="block text-green-dark mb-2">E-post *</label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light"
-            />
-          </div>
+
           <div>
             <label className="block text-green-dark mb-4 text-lg font-medium">
               Vill ni fira den här dagen med oss? *
@@ -290,43 +277,6 @@ function OSASection() {
 
           {formData.attending === "yes" && (
             <div className="space-y-6 pt-4 border-t border-green-dark/10">
-              <div>
-                <label className="block text-green-dark mb-4">
-                  Jag vill hålla tal
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-green-dark/20 bg-white/50 hover:bg-white/70 transition-colors">
-                    <input
-                      type="radio"
-                      name="wantsSpeech"
-                      value="yes"
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          wantsSpeech: e.target.value,
-                        })
-                      }
-                      className="accent-green-light w-5 h-5"
-                    />
-                    <span className="text-green-dark">Ja</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer p-3 rounded-lg border border-green-dark/20 bg-white/50 hover:bg-white/70 transition-colors">
-                    <input
-                      type="radio"
-                      name="wantsSpeech"
-                      value="no"
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          wantsSpeech: e.target.value,
-                        })
-                      }
-                      className="accent-green-light w-5 h-5"
-                    />
-                    <span className="text-green-dark">Nej</span>
-                  </label>
-                </div>
-              </div>
               <div>
                 <label className="block text-green-dark mb-2">Favoritlåt</label>
                 <input
@@ -528,6 +478,7 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
 
 • Dalarö torg – centralt och nära kyrkan
 • Askfatshamnen – större parkering nära vattnet
+• Vasaplan/Torsvägen
 • Dalarö begravningsplats – avgiftsfri parkering i 6 timmar
 • Vadviken – här finns även en avgiftsfri parkering mittemot Vadviken (max 12 timmar)`,
     },
@@ -576,10 +527,8 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
                 />
               </button>
               {openIndex === i && (
-                <div className="px-6 pb-4 pl-15">
-                  <p className="text-green-dark whitespace-pre-line ml-9">
-                    {faq.a}
-                  </p>
+                <div className="px-6 pb-4">
+                  <p className="text-green-dark whitespace-pre-line">{faq.a}</p>
                 </div>
               )}
             </div>
@@ -773,7 +722,7 @@ function PhotosSection() {
                 type="text"
                 value={uploaderName}
                 onChange={(e) => setUploaderName(e.target.value)}
-                placeholder="Förnamn Efternamn"
+                placeholder="Namn"
                 className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light"
               />
             </div>

@@ -15,8 +15,19 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Bröllop",
-  description: "Vi gifter oss!",
+  title: "Axel & Vendela - 15 Augusti",
+  description: "Vi gifter oss! Lördagen 15 augusti i Dalarö Kyrka, Haninge.",
+  openGraph: {
+    title: "Axel & Vendela - 15 Augusti",
+    description: "Vi gifter oss! Lördagen 15 augusti i Dalarö Kyrka, Haninge.",
+    images: [{ url: "/half-hero-img.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Axel & Vendela - 15 Augusti",
+    description: "Vi gifter oss! Lördagen 15 augusti i Dalarö Kyrka, Haninge.",
+    images: ["/half-hero-img.jpg"],
+  },
 };
 
 export default function RootLayout({
