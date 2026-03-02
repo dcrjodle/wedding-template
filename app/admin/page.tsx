@@ -8,13 +8,12 @@ type RSVP = {
   id: string;
   created_at: string;
   name: string;
-  email: string;
   attending: string;
-  wants_speech: boolean;
   song: string;
   has_dietary: boolean;
   dietary: string;
   fun_fact: string;
+  memory: string;
 };
 
 type Photo = {
@@ -34,6 +33,9 @@ export default function AdminPage() {
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<RSVP | null>(null);
+  const [deletePhotoTarget, setDeletePhotoTarget] = useState<Photo | null>(
+    null,
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,27 +109,25 @@ export default function AdminPage() {
   const downloadCSV = () => {
     const headers = [
       "Namn",
-      "E-post",
       "Status",
-      "Tal",
       "Specialkost",
       "Kost",
       "Låt",
       "Fun fact",
+      "Minne",
     ];
     const rows = rsvps.map((r) => [
       r.name,
-      r.email,
       r.attending === "yes"
         ? "Kommer"
         : r.attending === "ceremony_only"
           ? "Endast vigsel"
           : "Kommer ej",
-      r.wants_speech ? "Ja" : "Nej",
       r.has_dietary ? "Ja" : "Nej",
       r.dietary || "",
       r.song || "",
       r.fun_fact || "",
+      r.memory || "",
     ]);
     const csv = [headers, ...rows]
       .map((row) =>
@@ -164,6 +164,16 @@ export default function AdminPage() {
         p.id === photo.id ? { ...p, show_on_homepage: newValue } : p,
       ),
     );
+  };
+
+  const deletePhoto = async () => {
+    if (!supabase || !deletePhotoTarget) return;
+    await supabase.storage
+      .from("wedding-photos")
+      .remove([deletePhotoTarget.file_name]);
+    await supabase.from("photos").delete().eq("id", deletePhotoTarget.id);
+    setPhotos(photos.filter((p) => p.id !== deletePhotoTarget.id));
+    setDeletePhotoTarget(null);
   };
 
   const handleLogout = () => {
@@ -292,13 +302,7 @@ export default function AdminPage() {
                     Namn
                   </th>
                   <th className="text-left p-4 text-green-dark font-medium">
-                    E-post
-                  </th>
-                  <th className="text-left p-4 text-green-dark font-medium">
                     Status
-                  </th>
-                  <th className="text-left p-4 text-green-dark font-medium">
-                    Tal
                   </th>
                   <th className="text-left p-4 text-green-dark font-medium">
                     Kost
@@ -309,6 +313,9 @@ export default function AdminPage() {
                   <th className="text-left p-4 text-green-dark font-medium">
                     Fun fact
                   </th>
+                  <th className="text-left p-4 text-green-dark font-medium">
+                    Minne
+                  </th>
                   <th className="p-4"></th>
                 </tr>
               </thead>
@@ -316,7 +323,6 @@ export default function AdminPage() {
                 {rsvps.map((rsvp) => (
                   <tr key={rsvp.id} className="border-t border-green-dark/10">
                     <td className="p-4 text-green-dark">{rsvp.name}</td>
-                    <td className="p-4 text-green-dark">{rsvp.email}</td>
                     <td className="p-4">
                       <span
                         className={`px-2 py-1 rounded text-sm ${
@@ -335,14 +341,14 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td className="p-4 text-green-dark">
-                      {rsvp.wants_speech ? "Ja" : "-"}
-                    </td>
-                    <td className="p-4 text-green-dark">
                       {rsvp.has_dietary ? rsvp.dietary : "-"}
                     </td>
                     <td className="p-4 text-green-dark">{rsvp.song || "-"}</td>
                     <td className="p-4 text-green-dark max-w-xs truncate">
                       {rsvp.fun_fact || "-"}
+                    </td>
+                    <td className="p-4 text-green-dark max-w-xs truncate">
+                      {rsvp.memory || "-"}
                     </td>
                     <td className="p-4">
                       <button
@@ -395,18 +401,26 @@ export default function AdminPage() {
                   <p className="text-sm text-green-dark truncate mb-2">
                     {photo.uploader_name}
                   </p>
-                  <button
-                    onClick={() => toggleHomepage(photo)}
-                    className={`w-full text-sm py-2 px-3 rounded-lg transition-colors ${
-                      photo.show_on_homepage
-                        ? "bg-green-light text-white"
-                        : "bg-green-dark/10 text-green-dark hover:bg-green-dark/20"
-                    }`}
-                  >
-                    {photo.show_on_homepage
-                      ? "Visas på startsidan"
-                      : "Visa på startsidan"}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => toggleHomepage(photo)}
+                      className={`flex-1 text-sm py-2 px-3 rounded-lg transition-colors ${
+                        photo.show_on_homepage
+                          ? "bg-green-light text-white"
+                          : "bg-green-dark/10 text-green-dark hover:bg-green-dark/20"
+                      }`}
+                    >
+                      {photo.show_on_homepage
+                        ? "På startsidan"
+                        : "Visa på startsidan"}
+                    </button>
+                    <button
+                      onClick={() => setDeletePhotoTarget(photo)}
+                      className="p-2 rounded-lg text-pink-dark hover:bg-pink-dark/10 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -441,6 +455,41 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={deleteRSVP}
+                className="flex-1 py-3 rounded-lg bg-pink-dark text-white hover:bg-pink-dark/80 transition-colors"
+              >
+                Ta bort
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deletePhotoTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-beige rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-green-dark">
+                Ta bort bild
+              </h3>
+              <button
+                onClick={() => setDeletePhotoTarget(null)}
+                className="text-green-dark hover:text-green-light"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <p className="text-green-dark mb-6">
+              Är du säker på att du vill ta bort denna bild?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletePhotoTarget(null)}
+                className="flex-1 py-3 rounded-lg border border-green-dark/20 text-green-dark hover:bg-green-dark/5 transition-colors"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={deletePhoto}
                 className="flex-1 py-3 rounded-lg bg-pink-dark text-white hover:bg-pink-dark/80 transition-colors"
               >
                 Ta bort
