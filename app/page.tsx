@@ -116,18 +116,25 @@ export default function Home() {
 }
 
 function HeroSection() {
+  const [loaded, setLoaded] = useState(false);
   return (
     <section
       id="start"
       className="min-h-screen w-full flex flex-col md:flex-row"
     >
-      <div className="relative w-full md:w-1/2 h-[65vh] md:h-screen">
+      <div className="relative w-full md:w-1/2 h-[65vh] md:h-screen overflow-hidden">
         <Image
           src="/half-hero-img.jpg"
           alt="Axel & Vendela"
           fill
           className="object-cover object-top md:object-center"
           priority
+          onLoad={() => setLoaded(true)}
+          style={{
+            opacity: loaded ? 1 : 0,
+            transform: loaded ? "scale(1)" : "scale(1.06)",
+            transition: "opacity 1.2s ease, transform 1.4s ease",
+          }}
         />
       </div>
       <div className="w-full md:w-1/2 bg-pink-light flex flex-col items-center justify-center px-8 py-16 md:py-0">
