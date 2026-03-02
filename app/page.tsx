@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   Menu,
@@ -18,6 +18,30 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.opacity = "0";
+    el.style.transform = "translateY(32px)";
+    el.style.transition = "opacity 0.7s ease, transform 0.7s ease";
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.05 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
 
 const navItems = [
   { label: "STARTSIDA", href: "#start" },
@@ -132,9 +156,10 @@ function HeroSection() {
 }
 
 function IntroSection() {
+  const ref = useReveal();
   return (
     <section className="py-16 px-4 bg-beige">
-      <div className="max-w-3xl mx-auto text-center">
+      <div ref={ref} className="reveal max-w-3xl mx-auto text-center">
         <p className="text-lg md:text-xl text-green-dark leading-relaxed">
           Vi är så glada att ni vill dela den här dagen med oss. Här hittar ni
           allt ni kan tänkas behöva veta inför bröllopet – tider, platser och
@@ -147,6 +172,7 @@ function IntroSection() {
 }
 
 function OSASection() {
+  const revealRef = useReveal();
   const [formData, setFormData] = useState({
     name: "",
     attending: "",
@@ -154,6 +180,7 @@ function OSASection() {
     hasDietary: "",
     dietary: "",
     funFact: "",
+    memory: "",
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -177,6 +204,7 @@ function OSASection() {
           has_dietary: formData.hasDietary === "yes",
           dietary: formData.dietary,
           fun_fact: formData.funFact,
+          memory: formData.memory,
         },
       ]);
       if (error) throw error;
@@ -206,13 +234,13 @@ function OSASection() {
 
   return (
     <section id="osa" className="py-24 px-4 bg-pink-light/30">
-      <div className="max-w-2xl mx-auto">
+      <div ref={revealRef} className="reveal max-w-2xl mx-auto">
         <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark text-center mb-12">
           O.S.A
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-green-dark mb-2">
+            <label className="block text-green-dark mb-2 font-medium text-lg">
               För- Och Efternamn *
             </label>
             <input
@@ -381,6 +409,26 @@ function OSASection() {
             </div>
           )}
 
+          {formData.attending === "yes" && (
+            <div>
+              <label className="block text-green-dark mb-2 font-medium text-lg">
+                Ett minne för livet?
+              </label>
+              <p className="text-green-dark/70 text-sm mb-2">
+                Har du ett särskilt fint, roligt eller knasigt minne med Axel &
+                Vendela? Skriv gärna en rad eller två här!
+              </p>
+              <textarea
+                value={formData.memory}
+                onChange={(e) =>
+                  setFormData({ ...formData, memory: e.target.value })
+                }
+                rows={4}
+                className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light resize-none"
+              />
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
@@ -395,9 +443,10 @@ function OSASection() {
 }
 
 function LocationSection() {
+  const ref = useReveal();
   return (
     <section id="location" className="py-24 px-4 bg-beige">
-      <div className="max-w-4xl mx-auto">
+      <div ref={ref} className="reveal max-w-4xl mx-auto">
         <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark text-center mb-12">
           Ta dig hit
         </h2>
@@ -462,6 +511,7 @@ function LocationSection() {
 }
 
 function FAQSection() {
+  const revealRef = useReveal();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqs = [
@@ -555,7 +605,7 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
 
   return (
     <section id="faq" className="py-24 px-4 bg-pink-light/20">
-      <div className="max-w-3xl mx-auto">
+      <div ref={revealRef} className="reveal max-w-3xl mx-auto">
         <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark text-center mb-12">
           FAQ
         </h2>
@@ -593,16 +643,26 @@ Kort sagt: kom som den bästa versionen av dig själv – den som både kan skå
 }
 
 function PhotosSection() {
+  const revealRef = useReveal();
   const [showModal, setShowModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploaderName, setUploaderName] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [homepagePhotos, setHomepagePhotos] = useState<string[]>([]);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchHomepagePhotos();
   }, []);
+
+  useEffect(() => {
+    if (!lightboxUrl) return;
+    const handler = (e: KeyboardEvent) =>
+      e.key === "Escape" && setLightboxUrl(null);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [lightboxUrl]);
 
   const fetchHomepagePhotos = async () => {
     if (!isSupabaseConfigured() || !supabase) return;
@@ -708,7 +768,7 @@ function PhotosSection() {
 
   return (
     <section id="photos" className="py-24 px-4 bg-beige">
-      <div className="max-w-5xl mx-auto">
+      <div ref={revealRef} className="reveal max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <Camera className="w-12 h-12 text-green-dark mx-auto mb-4" />
           <h2 className="font-[family-name:var(--font-signature)] text-5xl md:text-6xl text-green-dark mb-4">
@@ -741,14 +801,39 @@ function PhotosSection() {
             {homepagePhotos.map((url, i) => (
               <div
                 key={i}
-                className="aspect-square rounded-lg md:rounded-xl overflow-hidden"
+                className="aspect-square rounded-lg md:rounded-xl overflow-hidden cursor-pointer group"
+                onClick={() => setLightboxUrl(url)}
               >
-                <img src={url} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={url}
+                  alt=""
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt=""
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
