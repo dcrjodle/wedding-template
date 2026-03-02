@@ -406,7 +406,7 @@ function OSASection() {
               <p className="text-green-dark">
                 Så tråkigt att du inte kan komma. Om du ändå vill bidra till
                 dagen på något sätt är du varmt välkommen att höra av dig till
-                vårt toastpar, Ana och Joel ({" "}
+                vårt toastpar, Ana och Joel (
                 <a
                   href="mailto:ana.tramosljanin@hotmail.com"
                   className="underline hover:text-green-light transition-colors"
