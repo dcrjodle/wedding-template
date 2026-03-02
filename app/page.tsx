@@ -325,7 +325,9 @@ function OSASection() {
           {formData.attending === "yes" && (
             <div className="space-y-6 pt-4 border-t border-green-dark/10">
               <div>
-                <label className="block text-green-dark mb-2">Favoritlåt</label>
+                <label className="block text-green-dark mb-2 font-medium text-lg">
+                  Favoritlåt
+                </label>
                 <input
                   type="text"
                   value={formData.song}
@@ -337,7 +339,7 @@ function OSASection() {
                 />
               </div>
               <div>
-                <label className="block text-green-dark mb-4">
+                <label className="block text-green-dark mb-4 font-medium text-lg">
                   Har du specialkost?
                 </label>
                 <div className="flex gap-4">
@@ -383,7 +385,7 @@ function OSASection() {
                 )}
               </div>
               <div>
-                <label className="block text-green-dark mb-2">
+                <label className="block text-green-dark mb-2 font-medium text-lg">
                   Fun fact om dig själv
                 </label>
                 <textarea
@@ -419,18 +421,16 @@ function OSASection() {
           {formData.attending === "yes" && (
             <div>
               <label className="block text-green-dark mb-2 font-medium text-lg">
-                Ett minne för livet?
+                Dela med dig av ett minne
               </label>
-              <p className="text-green-dark/70 text-sm mb-2">
-                Har du ett särskilt fint, roligt eller knasigt minne med Axel &
-                Vendela? Skriv gärna en rad eller två här!
-              </p>
               <textarea
                 value={formData.memory}
                 onChange={(e) =>
                   setFormData({ ...formData, memory: e.target.value })
                 }
                 rows={4}
+                placeholder="Har du ett särskilt fint, roligt eller knasigt minne med Axel &
+                Vendela? Skriv gärna en rad eller två här!"
                 className="w-full px-4 py-3 rounded-lg border border-green-dark/20 bg-white/50 focus:outline-none focus:border-green-light resize-none"
               />
             </div>
