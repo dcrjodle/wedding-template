@@ -1,8 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import JSZip from "jszip";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { Lock, LogOut, Users, Camera, Download, Trash2, X } from "lucide-react";
+import {
+  Lock,
+  LogOut,
+  Users,
+  Camera,
+  Download,
+  Trash2,
+  X,
+  Star,
+} from "lucide-react";
 
 type RSVP = {
   id: string;
@@ -36,6 +46,10 @@ export default function AdminPage() {
   const [deletePhotoTarget, setDeletePhotoTarget] = useState<Photo | null>(
     null,
   );
+  const [downloading, setDownloading] = useState<"all" | "selected" | null>(
+    null,
+  );
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,6 +159,64 @@ export default function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
+  const downloadPhotos = async (mode: "all" | "selected") => {
+    const targets =
+      mode === "selected" ? photos.filter((p) => p.show_on_homepage) : photos;
+    if (targets.length === 0) return;
+
+    setDownloading(mode);
+    setDownloadProgress(0);
+
+    try {
+      const zip = new JSZip();
+      const usedNames = new Set<string>();
+      let done = 0;
+
+      for (const photo of targets) {
+        const response = await fetch(photo.url);
+        if (!response.ok) {
+          console.error(`Kunde inte hämta ${photo.file_name}`);
+          done++;
+          setDownloadProgress(done);
+          continue;
+        }
+        const blob = await response.blob();
+
+        // Filenames in storage may repeat across uploaders — keep them unique in the zip.
+        const base = photo.file_name.split("/").pop() || photo.file_name;
+        let name = `${photo.uploader_name || "okand"}-${base}`;
+        let counter = 1;
+        while (usedNames.has(name)) {
+          const dot = name.lastIndexOf(".");
+          name =
+            dot === -1
+              ? `${name}-${counter}`
+              : `${name.slice(0, dot)}-${counter}${name.slice(dot)}`;
+          counter++;
+        }
+        usedNames.add(name);
+
+        zip.file(name, blob);
+        done++;
+        setDownloadProgress(done);
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =
+        mode === "selected" ? "bilder-startsidan.zip" : "alla-bilder.zip";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Nedladdning misslyckades", err);
+    }
+
+    setDownloading(null);
+    setDownloadProgress(0);
+  };
+
   const deleteRSVP = async () => {
     if (!supabase || !deleteTarget) return;
     await supabase.from("rsvp").delete().eq("id", deleteTarget.id);
@@ -243,6 +315,7 @@ export default function AdminPage() {
   const attending = rsvps.filter((r) => r.attending === "yes");
   const notAttending = rsvps.filter((r) => r.attending === "no");
   const ceremonyOnly = rsvps.filter((r) => r.attending === "ceremony_only");
+  const selectedPhotos = photos.filter((p) => p.show_on_homepage);
 
   return (
     <main className="min-h-screen bg-beige py-8 px-4">
@@ -365,11 +438,35 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-6">
-          <Camera className="w-8 h-8 text-green-dark" />
-          <h2 className="text-2xl font-semibold text-green-dark">
-            Bilder ({photos.length})
-          </h2>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <Camera className="w-8 h-8 text-green-dark" />
+            <h2 className="text-2xl font-semibold text-green-dark">
+              Bilder ({photos.length})
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => downloadPhotos("all")}
+              disabled={downloading !== null || photos.length === 0}
+              className="flex items-center gap-2 py-2 px-4 rounded-lg bg-green-dark text-white hover:bg-green-light transition-colors disabled:opacity-50"
+            >
+              <Download className="w-5 h-5" />
+              {downloading === "all"
+                ? `Laddar ner... (${downloadProgress}/${photos.length})`
+                : `Ladda ner alla (${photos.length})`}
+            </button>
+            <button
+              onClick={() => downloadPhotos("selected")}
+              disabled={downloading !== null || selectedPhotos.length === 0}
+              className="flex items-center gap-2 py-2 px-4 rounded-lg border border-green-dark/20 text-green-dark hover:bg-green-dark/5 transition-colors disabled:opacity-50"
+            >
+              <Star className="w-5 h-5" />
+              {downloading === "selected"
+                ? `Laddar ner... (${downloadProgress}/${selectedPhotos.length})`
+                : `Ladda ner valda (${selectedPhotos.length})`}
+            </button>
+          </div>
         </div>
 
         {photos.length === 0 ? (
